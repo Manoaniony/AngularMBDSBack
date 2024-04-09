@@ -1,0 +1,45 @@
+version: "3.1"
+
+services:
+  mongodb:
+    build:
+      context: ./mongodb
+      dockerfile: dev.Dockerfile
+    restart: always
+    ports:
+      - "27017:27017"
+
+  # server:
+  #   build:
+  #     context: ./server
+  #     dockerfile: dev.Dockerfile
+  #   restart: always
+  #   volumes:
+  #     - "./server:/server:rw"
+  #   ports:
+  #     - "4000:4000"
+  #   env_file:
+  #     - .env
+
+  # mongoku:
+  #   image: huggingface/mongoku:1.3.0
+  #   depends_on:
+  #     - mongodb
+  #   ports:
+  #     - "3100:3100"
+  #   env_file:
+  #     - .env
+
+  # front:
+  #   build:
+  #     context: front
+  #     dockerfile: dev.Dockerfile
+  #   ports:
+  #     - "4200:4200"
+  #   entrypoint: yarn start
+  #   volumes:
+  #     - ./front:/usr/src/app
+  #   env_file:
+  #     - front/.env
+volumes:
+  data-m1:
