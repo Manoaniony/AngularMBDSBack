@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 let express = require('express');
 let app = express();
 let bodyParser = require('body-parser');
@@ -9,7 +11,7 @@ mongoose.Promise = global.Promise;
 
 // remplacer toute cette chaine par l'URI de connexion à votre propre base dans le cloud s
 // mongodb+srv://ramarolahymanoaniony:<password>@cluster0.y5yxchd.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
-const uri = 'mongodb+srv://ramarolahymanoaniony:admin@cluster0.8kzyzcl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+const uri = process.env.MONGO_URI;
 const options = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
