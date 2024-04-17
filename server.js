@@ -5,7 +5,8 @@ let app = express();
 let bodyParser = require('body-parser');
 let assignment = require('./routes/assignments');
 let { postUser } = require('./routes/users');
-let { login } = require('./routes/auth');
+let { login, forbidden, internalServer, unauthorized, ok } = require('./routes/auth');
+const cors = require('cors');
 
 let mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
@@ -30,6 +31,13 @@ mongoose.connect(uri, options)
     err => {
       console.log('Erreur de connexion: ', err);
     });
+
+app.use(cors({
+  origin: '*',
+  allowedHeaders: ['Authorization', 'Content-Type'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTION'],
+  credentials: true // If you're using cookies for authentication
+}));
 
 // Pour accepter les connexions cross-domain (CORS)
 app.use(function (req, res, next) {
@@ -64,6 +72,14 @@ app.route(prefix + '/users')
 
 app.route(prefix + '/auth')
   .post(login)
+app.route(prefix + '/internal-server')
+  .post(internalServer)
+app.route(prefix + '/forbidden')
+  .post(forbidden)
+app.route(prefix + '/unauthorized')
+  .post(unauthorized)
+app.route(prefix + '/ok')
+  .post(ok)
 
 // On démarre le serveur
 app.listen(port, "0.0.0.0");

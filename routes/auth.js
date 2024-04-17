@@ -40,7 +40,38 @@ async function login(req, res) {
         console.log(error)
         return res.status(500).json(error);
     }
-
 }
 
-module.exports = { login }
+function internalServer(_, res) {
+    res.status(500).json({
+        data: null,
+        status: 500,
+        message: "INTERNAL_SERVER"
+    })
+}
+
+function forbidden(_, res) {
+    res.status(403).json({
+        data: null,
+        status: 403,
+        message: "FORBIDDEN"
+    })
+}
+
+function unauthorized(_, res) {
+    res.status(401).json({
+        data: null,
+        status: 401,
+        message: "UNAUTHORIZED"
+    })
+}
+
+function ok(_, res) {
+    res.status(200).json({
+        data: { ok: true },
+        status: 200,
+        message: "OK"
+    })
+}
+
+module.exports = { login, internalServer, forbidden, unauthorized, ok }
