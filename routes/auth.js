@@ -3,10 +3,10 @@ let User = require('../model/user');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const moment = require('moment');
+const tokenKey = process.env.TOKEN_KEY;
 
 async function login(req, res) {
     const { email, password } = req.body;
-    const tokenKey = process.env.TOKEN_KEY;
     const updatedAt = moment().format("DD/MM/YYYY HH:mm");
 
     try {
@@ -16,13 +16,16 @@ async function login(req, res) {
             if (validPassword) {
                 const token = jwt.sign({
                     _id: userFound._id,
-                    email: userFound.email,
-                    profile: userFound.profile,
-                    userRoles: userFound.usersRoles,
                 }, tokenKey, { expiresIn: '23 hours' });
                 const { token: newToken } = await User.findOneAndUpdate({ _id: userFound._id }, { token, updatedAt })
                 return res.status(200).json({
-                    data: { token: newToken },
+                    data: {
+                        token: newToken,
+                        email: userFound.email,
+                        firstName: userFound.firstName,
+                        lastName: userFound.lastName,
+                        role: userFound.role,
+                    },
                     status: 200,
                     message: "USER_CONNECTED"
                 });
@@ -40,6 +43,33 @@ async function login(req, res) {
         console.log(error)
         return res.status(500).json(error);
     }
+}
+
+async function me(req, res) {
+    const { authorization } = req.headers;
+    try {
+        const tokenParsed = authorization.split(" ");
+
+        const { _id } = jwt.verify(tokenParsed[1], tokenKey);
+        const userFound = await User.findOne({ _id });
+        if (userFound) {
+            const { _id, email, firstName, lastName, role } = userFound
+            return res.status(200).json({
+                data: { _id, email, firstName, lastName, role },
+                status: 200,
+                message: "AUTHORIZED"
+            });
+        }
+        throw new Error("no access");
+    } catch (error) {
+        console.log("No Access ", error);
+        return res.status(401).json({
+            data: null,
+            status: 401,
+            message: "UNAUTHORIZED"
+        })
+    }
+
 }
 
 function internalServer(_, res) {
@@ -74,4 +104,4 @@ function ok(_, res) {
     })
 }
 
-module.exports = { login, internalServer, forbidden, unauthorized, ok }
+module.exports = { login, me, internalServer, forbidden, unauthorized, ok }

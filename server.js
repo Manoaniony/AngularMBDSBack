@@ -5,7 +5,7 @@ let app = express();
 let bodyParser = require('body-parser');
 let assignment = require('./routes/assignments');
 let { postUser } = require('./routes/users');
-let { login, forbidden, internalServer, unauthorized, ok } = require('./routes/auth');
+let { login, forbidden, internalServer, unauthorized, ok, me } = require('./routes/auth');
 const cors = require('cors');
 
 let mongoose = require('mongoose');
@@ -72,6 +72,8 @@ app.route(prefix + '/users')
 
 app.route(prefix + '/auth')
   .post(login)
+app.route(prefix + '/me')
+  .post(me)
 app.route(prefix + '/internal-server')
   .post(internalServer)
 app.route(prefix + '/forbidden')
