@@ -17,7 +17,7 @@ async function postUser(req, res) {
             console.log("ERROR NAME ", err.name);
             console.log("ERROR MONGO ", err.code);
             if (err.name.includes("MongoError") && err.code == "11000") {
-                res.status(422).json({
+                return res.status(422).json({
                     data: null,
                     error: {
                         name: "EMAIL_ALREADY_EXIST",
@@ -26,7 +26,6 @@ async function postUser(req, res) {
                     status: 500,
                     message: "USER_NOT_CREATED"
                 })
-                return;
             }
             return;
         }
@@ -37,12 +36,12 @@ async function postUser(req, res) {
             lastName: userToCreate.lastName,
         }
 
-        res.status(201).json({
+        return res.status(201).json({
             data: userToReturn,
             status: 201,
             message: "USER_CREATED"
         })
-        return;
+
     })
 }
 
