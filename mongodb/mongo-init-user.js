@@ -1,6 +1,6 @@
 db.auth('admin-user', 'admin-password');
 
-db = db.getSiblingDB('tourismeDB');
+db = db.getSiblingDB('assignmentDB');
 
 db.createUser({
     user: 'tilt',
