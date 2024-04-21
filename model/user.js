@@ -6,7 +6,10 @@ let UserSchema = Schema({
     id: Number,
     lastName: String,
     firstName: String,
-    email: String,
+    email: {
+        type: String,
+        unique: true
+    },
     password: String,
     role: String,
     token: String,

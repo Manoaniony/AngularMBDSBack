@@ -14,11 +14,21 @@ async function postUser(req, res) {
 
     userToCreate.save((err) => {
         if (err) {
-            res.status(500).json({
-                error: err,
-                status: 500,
-                message: "USER_NOT_CREATED"
-            })
+            console.log("ERROR NAME ", err.name);
+            console.log("ERROR MONGO ", err.code);
+            if (err.name.includes("MongoError") && err.code == "11000") {
+                res.status(422).json({
+                    data: null,
+                    error: {
+                        name: "EMAIL_ALREADY_EXIST",
+                        code: err.code
+                    },
+                    status: 500,
+                    message: "USER_NOT_CREATED"
+                })
+                return;
+            }
+            return;
         }
 
         const userToReturn = {

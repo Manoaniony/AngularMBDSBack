@@ -69,7 +69,6 @@ async function me(req, res) {
             message: "UNAUTHORIZED"
         })
     }
-
 }
 
 function internalServer(_, res) {
