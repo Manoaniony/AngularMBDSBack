@@ -21,7 +21,7 @@ async function postUser(req, res) {
                         name: "EMAIL_ALREADY_EXIST",
                         code: err.code
                     },
-                    status: 500,
+                    status: 422,
                     message: "USER_NOT_CREATED"
                 })
             }
