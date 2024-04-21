@@ -14,8 +14,6 @@ async function postUser(req, res) {
 
     userToCreate.save((err) => {
         if (err) {
-            console.log("ERROR NAME ", err.name);
-            console.log("ERROR MONGO ", err.code);
             if (err.name.includes("MongoError") && err.code == "11000") {
                 return res.status(422).json({
                     data: null,
