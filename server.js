@@ -82,6 +82,8 @@ app.route(prefix + '/unauthorized')
   .post(unauthorized)
 app.route(prefix + '/ok')
   .post(ok)
+app.route(prefix + '/mock')
+  .get(ok)
 
 // On démarre le serveur
 app.listen(port, "0.0.0.0");
