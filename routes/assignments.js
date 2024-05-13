@@ -66,6 +66,47 @@ function postAssignment(req, res) {
     })
 }
 
+function postAssignments(req, res) {
+    let assignment = new Assignment();
+    assignment.id = req.body.id;
+    assignment.nom = req.body.nom;
+    assignment.img = req.body.img;
+    assignment.imgProf = req.body.imgProf;
+    assignment.matiere = req.body.matiere;
+    assignment.eleves = []
+
+    console.log("POST assignment reçu :");
+    console.log(assignment)
+
+    assignment.save((err) => {
+        if (err) {
+            res.send('cant post assignment ', err);
+        }
+        res.json({ message: `${assignment.nom} saved!` })
+    })
+}
+
+function ajoutElevesAssignment(req,res){
+    let assignmentId = req.body._id;
+    Assignment.findById(assignmentId)
+        .then((assignment) => {
+            if (!assignment) {
+                throw new Error('Assignment non trouvé');
+            }
+            assignment.eleves.push(req.body.eleve);
+            assignment.save();
+            res.json({ message: 'success' })
+        })
+        .then((updatedAssignment) => {
+            console.log('Assignment mis à jour avec les nouveaux élèves :', updatedAssignment);
+            res.json({ message: 'updated' })
+        })
+        .catch((error) => {
+            console.error('Erreur lors de la mise à jour de l\'assignment :', error.message);
+            res.json({ message: 'erreur' })
+        });
+}
+
 // Update d'un assignment (PUT)
 function updateAssignment(req, res) {
     console.log("UPDATE recu assignment : ");
@@ -97,4 +138,4 @@ function deleteAssignment(req, res) {
 
 
 
-module.exports = { getAssignments, postAssignment, getAssignment, updateAssignment, deleteAssignment };
+module.exports = { getAssignments, postAssignment, getAssignment, updateAssignment, deleteAssignment,ajoutElevesAssignment,postAssignments };
