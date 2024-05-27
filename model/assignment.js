@@ -2,22 +2,54 @@ let mongoose = require('mongoose');
 let Schema = mongoose.Schema;
 const mongoosePaginate = require('mongoose-aggregate-paginate-v2');
 
-let AssignmentSchema = Schema({
-    id: Number,
+const EleveSchema = new Schema({
+    matricule: {
+        type: String,
+        required: [true, 'Matricule is required'],
+    },
     nom: String,
-    img : String,
-    imgProf : String,
-    matiere : String,
-    eleves : [
-        {
-            nom : String,
-            rendu : Boolean,
-            note : Number,
-            remarque : String,
-            dateDeRendu: Date
-        }
-    ]
+    rendu: Boolean,
+    note: Number,
+    remarque: String,
+    dateDeRendu: Date,
 });
+EleveSchema.index({ 'matricule': 1 }, { unique: true })
+
+let AssignmentSchema = Schema({
+    label: {
+        type: String,
+        required: [true, 'Label is required']
+    },
+    matiere: { type: mongoose.Schema.Types.ObjectId, ref: 'subjects', required: true },
+    eleves: [EleveSchema]
+}, {
+    // Options de schéma
+    toJSON: {
+        virtuals: true, // Inclut les propriétés virtuelles lors de la conversion en JSON
+        transform: (_, ret) => {
+            delete ret.__v; // Exclut l'attribut __v
+        },
+    },
+});
+
+// Function to check for duplicate matricules
+const checkDuplicateMatricules = function (next) {
+    const eleves = this.eleves || (this._update && this._update.eleves);
+    console.log("ELEVES ", eleves);
+    if (eleves) {
+        const matricules = eleves.map(eleve => eleve.matricule);
+        if (new Set(matricules).size !== matricules.length) {
+            return next(new Error('Duplicate matricules are not allowed'));
+        }
+    }
+    next();
+};
+
+// // Apply pre-save and pre-update hooks
+// AssignmentSchema.pre('save', checkDuplicateMatricules);
+// AssignmentSchema.pre('save', checkDuplicateMatricules);
+AssignmentSchema.pre('updateOne', checkDuplicateMatricules);
+
 
 AssignmentSchema.plugin(mongoosePaginate);
 

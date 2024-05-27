@@ -4,6 +4,7 @@ let express = require('express');
 let app = express();
 let bodyParser = require('body-parser');
 let assignment = require('./routes/assignments');
+let subject = require('./routes/subjects');
 let { postUser } = require('./routes/users');
 let { login, forbidden, internalServer, unauthorized, ok, me } = require('./routes/auth');
 const cors = require('cors');
@@ -19,7 +20,8 @@ console.log("uri ", uri);
 const options = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-  useFindAndModify: false
+  useFindAndModify: false,
+  useCreateIndex: true, // Add this option
 };
 
 mongoose.connect(uri, options)
@@ -43,7 +45,7 @@ app.use(cors({
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PATCH, PUT, DELETE, OPTIONS");
   next();
 });
 
@@ -59,13 +61,27 @@ const prefix = '/api';
 
 // http://serveur..../assignments
 app.route(prefix + '/assignments')
-  .post(assignment.postAssignment)
+  .post(assignment.postAssignments)
   .put(assignment.updateAssignment)
   .get(assignment.getAssignments);
 
 app.route(prefix + '/assignments/:id')
   .get(assignment.getAssignment)
   .delete(assignment.deleteAssignment);
+
+app.route(prefix + '/subjects')
+  .get(subject.getSubjects)
+  .post(subject.postSubject)
+
+app.route(prefix + '/subject/:id')
+  .get(subject.getSubject)
+  .delete(subject.deleteSubject);
+
+app.route(prefix + '/subject/:id/update')
+  .put(subject.updateSubject)
+
+app.route(prefix + '/assignments/:id/eleves')
+  .post(assignment.ajoutNoteEleve);
 
 app.route(prefix + '/users')
   .post(postUser)

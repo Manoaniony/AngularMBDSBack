@@ -1,4 +1,5 @@
 let Assignment = require('../model/assignment');
+let Note = require('../model/note');
 
 // Récupérer tous les assignments (GET)
 /*
@@ -69,42 +70,102 @@ function postAssignment(req, res) {
 function postAssignments(req, res) {
     let assignment = new Assignment();
     assignment.id = req.body.id;
-    assignment.nom = req.body.nom;
+    assignment.label = req.body.label;
     assignment.img = req.body.img;
-    assignment.imgProf = req.body.imgProf;
     assignment.matiere = req.body.matiere;
-    assignment.eleves = []
+    assignment.eleves = [];
+    assignment.matiere = req.body.matiere;
 
-    console.log("POST assignment reçu :");
-    console.log(assignment)
-
-    assignment.save((err) => {
+    assignment.save((err, assignmentSaved) => {
         if (err) {
-            res.send('cant post assignment ', err);
+            console.log("error ", err);
+            if (err.name.includes("MongoError") && err.code == "11000") {
+                // switch
+                return res.status(422).json({
+                    data: null,
+                    error: {
+                        name: "MATIERE_ALREADY_EXIST",
+                        code: err.code
+                    },
+                    status: 422,
+                    message: "ASSIGNMENT_NOT_CREATED"
+                })
+            }
+            else {
+                return res.status(422).json({
+                    data: null,
+                    error: {
+                        name: "ERROR",
+                        code: err.code
+                    },
+                    status: 400,
+                    message: "ASSIGNMENT_NOT_CREATED"
+                })
+            }
         }
-        res.json({ message: `${assignment.nom} saved!` })
+        return res.json({
+            data: assignmentSaved,
+            status: 201,
+            message: "ASSIGNMENT_CREATED"
+        })
     })
 }
 
-function ajoutElevesAssignment(req,res){
-    let assignmentId = req.body._id;
-    Assignment.findById(assignmentId)
-        .then((assignment) => {
-            if (!assignment) {
-                throw new Error('Assignment non trouvé');
-            }
-            assignment.eleves.push(req.body.eleve);
-            assignment.save();
-            res.json({ message: 'success' })
+async function ajoutNoteEleve(req, res) {
+    let assignmentId = req.params.id;
+    const filter = { _id: req.params.id };
+    try {
+        const assignmentToUpdate = Assignment.findById(assignmentId).then((response) => {
+            console.log("response on find ", response);
+            let assignmentToUpdate = response;
+            assignmentToUpdate.eleves.push(req.body.eleve);
+            console.log("assignmentToUpdate >>>> ", assignmentToUpdate);
+            return Assignment.updateOne(filter, assignmentToUpdate)
+                .then((responseUpdate) => {
+                    console.log("ResponseUpdate ", responseUpdate);
+                    if (responseUpdate.nModified) {
+                        return assignmentToUpdate;
+                    }
+                    else {
+                        return response
+                    }
+                })
+                .catch((error) => {
+                    console.log("Error on update one ", error);
+                    throw error;
+                })
+        }).catch((error) => {
+            console.log("ERRRRRR >>>> ", error);
+            throw error
         })
-        .then((updatedAssignment) => {
-            console.log('Assignment mis à jour avec les nouveaux élèves :', updatedAssignment);
-            res.json({ message: 'updated' })
+        const responseToRequest = await assignmentToUpdate;
+        return await res.json({
+            data: responseToRequest,
+            status: 201,
+            message: "STUDENT_ADDED"
         })
-        .catch((error) => {
-            console.error('Erreur lors de la mise à jour de l\'assignment :', error.message);
-            res.json({ message: 'erreur' })
-        });
+    } catch (err) {
+        if (err.message.includes("matricule")) {
+            return res.status(422).json({
+                data: null,
+                error: {
+                    name: "MATRICULE_ALREADY_EXIST",
+                    code: err.code
+                },
+                status: 422,
+                message: "STUDENT_NOT_ADDED"
+            })
+        }
+        return res.json({
+            data: null,
+            status: 400,
+            error: {
+                name: "ERROR",
+                code: err.code
+            },
+            message: "STUDENT_NOT_ADDED"
+        })
+    }
 }
 
 // Update d'un assignment (PUT)
@@ -138,4 +199,4 @@ function deleteAssignment(req, res) {
 
 
 
-module.exports = { getAssignments, postAssignment, getAssignment, updateAssignment, deleteAssignment,ajoutElevesAssignment,postAssignments };
+module.exports = { getAssignments, postAssignment, getAssignment, updateAssignment, deleteAssignment, ajoutNoteEleve, postAssignments };
