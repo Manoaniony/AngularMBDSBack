@@ -198,6 +198,47 @@ async function ajoutNoteEleve(req, res) {
     }
 }
 
+function getNote(req, res) {
+    let _id = req.params.id;
+    let matricule = req.params.matricule;
+    Assignment.findOne({ _id }, (err, assignment) => {
+        const eleve = assignment.eleves.find((eleve) => (eleve.matricule === matricule));
+        if (err) {
+            return res.status(400).json({
+                data: null,
+                error: {
+                    name: "ERROR",
+                    code: err.code
+                },
+                status: 400,
+            })
+        }
+        else if (!eleve) {
+            return res.status(404).json({
+                data: null,
+                error: {
+                    name: "ERROR",
+                },
+                status: 404,
+                message: "NOTE_NOT_FOUND"
+            })
+        }
+        return res.status(200).json({
+            data: eleve,
+            status: 200,
+        })
+    })
+}
+
+function updateNote(req, res) {
+    let _id = req.params.id;
+    return res.status(200).json({
+        data: { _id },
+        status: 200,
+        message: "NOTE_UPDATED"
+    })
+}
+
 // Update d'un assignment (PUT)
 function updateAssignment(req, res) {
     let _id = req.params.id;
@@ -242,4 +283,4 @@ function deleteAssignment(req, res) {
 
 
 
-module.exports = { getAssignments, postAssignment, getAssignment, updateAssignment, deleteAssignment, ajoutNoteEleve, postAssignments };
+module.exports = { getAssignments, postAssignment, getAssignment, updateAssignment, deleteAssignment, ajoutNoteEleve, postAssignments, updateNote, getNote };
