@@ -13,7 +13,7 @@ const EleveSchema = new Schema({
     remarque: String,
     dateDeRendu: Date,
 });
-EleveSchema.index({ 'matricule': 1 }, { unique: true })
+// EleveSchema.index({ 'matricule': 1 }, { unique: true })
 
 let AssignmentSchema = Schema({
     label: {
@@ -50,7 +50,7 @@ const checkDuplicateMatricules = function (next) {
 // AssignmentSchema.pre('save', checkDuplicateMatricules);
 AssignmentSchema.pre('updateOne', checkDuplicateMatricules);
 
-
+AssignmentSchema.index({ label: 1, matiere: 1 }, { unique: true })
 AssignmentSchema.plugin(mongoosePaginate);
 
 // C'est à travers ce modèle Mongoose qu'on pourra faire le CRUD

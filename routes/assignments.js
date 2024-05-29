@@ -15,29 +15,60 @@ function getAssignments(req, res){
 */
 
 function getAssignments(req, res) {
-    let aggregateQuery = Assignment.aggregate();
+    const aggregateQuery = Assignment.aggregate(
+        [
+            {
+                $lookup: {
+                    from: 'subjects', // The name of the related collection ('subjects' in this case)
+                    localField: 'matiere',
+                    foreignField: '_id',
+                    as: 'matiere', // The field where the populated subjects will be stored
+                },
+            },
+            {
+                $unwind: '$matiere', // Unwind the array to get a single object
+            },
+            {
+                $addFields: {
+                    matiere: '$matiere', // Rename the field to 'matiere'
+                },
+            },
+        ]
+    )
 
-    Assignment.aggregatePaginate(
-        aggregateQuery,
-        {
-            page: parseInt(req.query.page) || 1,
-            limit: parseInt(req.query.limit) || 10
-        },
-        (err, data) => {
-            if (err) {
-                res.send(err)
-            }
-            res.send(data);
+    // Execute the aggregatePaginate query
+    Assignment.aggregatePaginate(aggregateQuery, {
+        page: parseInt(req.query.page) || 1,
+        limit: parseInt(req.query.limit) || 10,
+    }, (err, data) => {
+        if (err) {
+            res.send(err)
         }
-    );
+        res.status(200).send({
+            data,
+            status: 200,
+        });
+    });
 }
 
 // Récupérer un assignment par son id (GET)
 function getAssignment(req, res) {
     let assignmentId = req.params.id;
-    Assignment.findById(assignmentId, (err, assignment) => {
-        if (err) { res.send(err) }
-        res.json(assignment);
+    Assignment.findById(assignmentId).populate('matiere').exec((err, assignment) => {
+        if (err || !assignment) {
+            res.status(404).json({
+                data: null,
+                status: 404,
+                message: "ASSIGNMENT_NOT_FOUND"
+            })
+            return;
+        }
+        console.log(assignment.matiere);
+        res.status(200).send({
+            data: assignment,
+            status: 200,
+        });
+        return;
     })
 
     /*
@@ -69,22 +100,21 @@ function postAssignment(req, res) {
 
 function postAssignments(req, res) {
     let assignment = new Assignment();
-    assignment.id = req.body.id;
+    // assignment.id = req.body.id;
     assignment.label = req.body.label;
-    assignment.img = req.body.img;
+    // assignment.img = req.body.img;
     assignment.matiere = req.body.matiere;
     assignment.eleves = [];
-    assignment.matiere = req.body.matiere;
+    // assignment.matiere = req.body.matiere;
 
     assignment.save((err, assignmentSaved) => {
         if (err) {
-            console.log("error ", err);
             if (err.name.includes("MongoError") && err.code == "11000") {
                 // switch
                 return res.status(422).json({
                     data: null,
                     error: {
-                        name: "MATIERE_ALREADY_EXIST",
+                        name: "LABEL_MATIERE_ALREADY_EXIST",
                         code: err.code
                     },
                     status: 422,
@@ -156,7 +186,7 @@ async function ajoutNoteEleve(req, res) {
                 message: "STUDENT_NOT_ADDED"
             })
         }
-        return res.json({
+        return res.status(400).json({
             data: null,
             status: 400,
             error: {
@@ -170,17 +200,26 @@ async function ajoutNoteEleve(req, res) {
 
 // Update d'un assignment (PUT)
 function updateAssignment(req, res) {
-    console.log("UPDATE recu assignment : ");
-    console.log(req.body);
-    Assignment.findByIdAndUpdate(req.body._id, req.body, { new: true }, (err, assignment) => {
+    let _id = req.params.id;
+    Assignment.findByIdAndUpdate(_id, req.body, { new: true }, (err, assignment) => {
+        console.log("assignment updated ", assignment);
         if (err) {
-            console.log(err);
-            res.send(err)
+            res.status(400).json({
+                data: null,
+                status: 400,
+                error: {
+                    name: "ERROR",
+                    code: err.code
+                },
+                message: "STUDENT_NOT_ADDED"
+            })
         } else {
-            res.json({ message: 'updated' })
+            res.status(200).json({
+                data: assignment,
+                status: 200,
+                message: "ASSIGNMENT_UPDATED"
+            })
         }
-
-        // console.log('updated ', assignment)
     });
 
 }
@@ -193,7 +232,11 @@ function deleteAssignment(req, res) {
         if (err) {
             res.send(err);
         }
-        res.json({ message: `${assignment.nom} deleted` });
+        return res.json({
+            data: assignment,
+            status: 200,
+            message: "ASSIGNMENT_DELETED"
+        })
     })
 }
 
