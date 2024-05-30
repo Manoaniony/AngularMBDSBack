@@ -180,7 +180,7 @@ async function ajoutNoteEleve(req, res) {
                 data: null,
                 error: {
                     name: "MATRICULE_ALREADY_EXIST",
-                    code: err.code
+                    code: err.code || 11000
                 },
                 status: 422,
                 message: "STUDENT_NOT_ADDED"
