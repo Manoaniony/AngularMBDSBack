@@ -230,11 +230,91 @@ function getNote(req, res) {
     })
 }
 
+async function deleteNote(req, res) {
+    const assignmentId = req.params.id;
+    const matricule = req.params.matricule;
+    const filter = { _id: req.params.id };
+
+    try {
+        const assignmentToUpdate = Assignment.findById(assignmentId).then((response) => {
+            console.log("response on find ", response);
+            if (!response) {
+                console.log("no response");
+            }
+            let assignmentToUpdate = response;
+            let eleves = assignmentToUpdate.eleves;
+            let existEleve = assignmentToUpdate.eleves?.find((eleve) => (eleve?.matricule === matricule))
+            if (!existEleve) {
+                throw new Error("Student doesn't exist")
+            }
+            const elevesUpdated = eleves?.filter((eleve) => (eleve?.matricule !== matricule));
+
+            console.log("elevesUpdated ", elevesUpdated);
+
+            assignmentToUpdate.eleves = elevesUpdated;
+            return Assignment.updateOne(filter, assignmentToUpdate)
+                .then((responseUpdate) => {
+                    console.log("ResponseUpdate ", responseUpdate);
+                    if (responseUpdate.nModified) {
+                        return assignmentToUpdate;
+                    }
+                    else {
+                        return response
+                    }
+                })
+                .catch((error) => {
+                    console.log("Error on update one ", error);
+                    throw error;
+                })
+        }).catch((error) => {
+            throw error
+        })
+        const responseToRequest = await assignmentToUpdate;
+        return await res.json({
+            data: responseToRequest,
+            status: 200,
+            message: "NOTE_DELETED"
+        })
+    } catch (err) {
+        console.log("err on catch ", err);
+        if (err?.message?.includes("Cast to ObjectId failed")) {
+            return res.status(404).json({
+                data: null,
+                status: 404,
+                error: {
+                    name: "ERROR",
+                    code: err.code
+                },
+                message: "ASSIGNMENT_NOT_EXIST"
+            })
+        }
+        if (err?.message?.includes("Student doesn't exist")) {
+            return res.status(404).json({
+                data: null,
+                status: 404,
+                error: {
+                    name: "ERROR",
+                    code: err.code
+                },
+                message: "STUDENT_NOT_EXIST"
+            })
+        }
+        return res.status(400).json({
+            data: null,
+            status: 400,
+            error: {
+                name: "ERROR",
+                code: err.code
+            },
+            message: "STUDENT_NOT_UPDATED"
+        })
+    }
+}
+
 async function updateNote(req, res) {
     const filter = { _id: req.params.id };
     const assignmentId = req.params.id;
     const matricule = req.params.matricule;
-    console.log({ assignmentId, matricule });
     try {
         const assignmentToUpdate = Assignment.findById(assignmentId).then((response) => {
             console.log("response on find ", response);
@@ -275,8 +355,8 @@ async function updateNote(req, res) {
         const responseToRequest = await assignmentToUpdate;
         return await res.json({
             data: responseToRequest,
-            status: 201,
-            message: "STUDENT_ADDED"
+            status: 200,
+            message: "NOTE_UPDATED"
         })
     } catch (err) {
         console.log("err on catch ", err);
@@ -358,4 +438,15 @@ function deleteAssignment(req, res) {
 
 
 
-module.exports = { getAssignments, postAssignment, getAssignment, updateAssignment, deleteAssignment, ajoutNoteEleve, postAssignments, updateNote, getNote };
+module.exports = {
+    getAssignments,
+    postAssignment,
+    getAssignment,
+    updateAssignment,
+    deleteAssignment,
+    ajoutNoteEleve,
+    postAssignments,
+    updateNote,
+    getNote,
+    deleteNote
+};

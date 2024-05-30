@@ -70,7 +70,8 @@ app.route(prefix + '/assignment/:id')
   .delete(assignment.deleteAssignment);
 
 app.route(prefix + '/assignment/:id/notes/:matricule')
-  .get(assignment.getNote);
+  .get(assignment.getNote)
+  .delete(assignment.deleteNote);
 
 app.route(prefix + '/assignment/:id/notes/:matricule/update')
   .put(assignment.updateNote);
