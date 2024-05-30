@@ -230,13 +230,88 @@ function getNote(req, res) {
     })
 }
 
-function updateNote(req, res) {
-    let _id = req.params.id;
-    return res.status(200).json({
-        data: { _id },
-        status: 200,
-        message: "NOTE_UPDATED"
-    })
+async function updateNote(req, res) {
+    const filter = { _id: req.params.id };
+    const assignmentId = req.params.id;
+    const matricule = req.params.matricule;
+    console.log({ assignmentId, matricule });
+    try {
+        const assignmentToUpdate = Assignment.findById(assignmentId).then((response) => {
+            console.log("response on find ", response);
+            if (!response) {
+                console.log("no response");
+            }
+            let assignmentToUpdate = response;
+            let eleves = assignmentToUpdate.eleves;
+            let existEleve = assignmentToUpdate.eleves?.find((eleve) => (eleve?.matricule === matricule))
+            if (!existEleve) {
+                throw new Error("Student doesn't exist")
+            }
+            const elevesUpdated = eleves?.map((eleve) => {
+                if (eleve?.matricule === matricule) {
+                    return { ...req.body.eleve, matricule };
+                }
+                return eleve;
+            });
+            assignmentToUpdate.eleves = elevesUpdated;
+            return Assignment.updateOne(filter, assignmentToUpdate)
+                .then((responseUpdate) => {
+                    console.log("ResponseUpdate ", responseUpdate);
+                    if (responseUpdate.nModified) {
+                        return assignmentToUpdate;
+                    }
+                    else {
+                        return response
+                    }
+                })
+                .catch((error) => {
+                    console.log("Error on update one ", error);
+                    throw error;
+                })
+        }).catch((error) => {
+            console.log("ERRRRRR >>>> ", error?.message?.includes("Cast to ObjectId failed"));
+            throw error
+        })
+        const responseToRequest = await assignmentToUpdate;
+        return await res.json({
+            data: responseToRequest,
+            status: 201,
+            message: "STUDENT_ADDED"
+        })
+    } catch (err) {
+        console.log("err on catch ", err);
+        if (err?.message?.includes("Cast to ObjectId failed")) {
+            return res.status(404).json({
+                data: null,
+                status: 404,
+                error: {
+                    name: "ERROR",
+                    code: err.code
+                },
+                message: "ASSIGNMENT_NOT_EXIST"
+            })
+        }
+        if (err?.message?.includes("Student doesn't exist")) {
+            return res.status(404).json({
+                data: null,
+                status: 404,
+                error: {
+                    name: "ERROR",
+                    code: err.code
+                },
+                message: "STUDENT_NOT_EXIST"
+            })
+        }
+        return res.status(400).json({
+            data: null,
+            status: 400,
+            error: {
+                name: "ERROR",
+                code: err.code
+            },
+            message: "STUDENT_NOT_UPDATED"
+        })
+    }
 }
 
 // Update d'un assignment (PUT)

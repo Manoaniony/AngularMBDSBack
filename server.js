@@ -73,7 +73,7 @@ app.route(prefix + '/assignment/:id/notes/:matricule')
   .get(assignment.getNote);
 
 app.route(prefix + '/assignment/:id/notes/:matricule/update')
-  .put(assignment.getAssignment);
+  .put(assignment.updateNote);
 
 app.route(prefix + '/assignment/:id/update')
   .put(assignment.updateAssignment)
