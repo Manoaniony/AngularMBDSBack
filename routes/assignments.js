@@ -202,7 +202,7 @@ function getNote(req, res) {
     let _id = req.params.id;
     let matricule = req.params.matricule;
     Assignment.findOne({ _id }, (err, assignment) => {
-        const eleve = assignment.eleves.find((eleve) => (eleve.matricule === matricule));
+        const eleve = assignment?.eleves?.find((eleve) => (eleve?.matricule === matricule));
         if (err) {
             return res.status(400).json({
                 data: null,
