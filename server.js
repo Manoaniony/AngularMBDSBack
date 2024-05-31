@@ -9,6 +9,7 @@ let app = express();
 
 app.post("/api/upload_files", upload.array("files"), uploadFiles);
 async function uploadFiles(req, res) {
+  res.header("Access-Control-Allow-Origin", "*");
   const uploader = async (path) => await cloudinary.uploads(path, 'Images');
   if (req.method === 'POST') {
     console.log(req.body);
@@ -64,18 +65,21 @@ mongoose.connect(uri, options)
       console.log('Erreur de connexion: ', err);
     });
 
-app.use(cors({
-  origin: '*',
-  allowedHeaders: ['Authorization', 'Content-Type'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTION'],
-  credentials: true // If you're using cookies for authentication
-}));
+app.use(cors(
+  {
+    origin: '*',
+    //   allowedHeaders: ['Authorization', 'Content-Type'],
+    //   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTION'],
+    //   credentials: true // If you're using cookies for authentication
+  }
+));
 
 // Pour accepter les connexions cross-domain (CORS)
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PATCH, PUT, DELETE, OPTIONS");
+  // res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  // res.header("Access-Control-Allow-Methods", "GET, POST, PATCH, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Credentials", true);
   next();
 });
 
