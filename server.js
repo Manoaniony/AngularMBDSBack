@@ -1,7 +1,37 @@
 require('dotenv').config()
+const fs = require('fs');
+const multer = require("multer");
+const upload = multer({ dest: "uploads/" });
+const cloudinary = require("./cloudinary");
 
 let express = require('express');
 let app = express();
+
+app.post("/api/upload_files", upload.array("files"), uploadFiles);
+async function uploadFiles(req, res) {
+  const uploader = async (path) => await cloudinary.uploads(path, 'Images');
+  if (req.method === 'POST') {
+    console.log(req.body);
+    const urls = []
+    const files = req.files;
+    for (const file of files) {
+      const { path } = file
+      const newPath = await uploader(path)
+      urls.push(newPath)
+      fs.unlinkSync(path)
+    }
+    res.status(200).json({
+      message: 'images uploaded successfully',
+      data: urls
+    })
+  }
+  else {
+    res.status(405).json({
+      err: `${req.method} method not allowed`
+    })
+  }
+}
+
 let bodyParser = require('body-parser');
 let assignment = require('./routes/assignments');
 let subject = require('./routes/subjects');
