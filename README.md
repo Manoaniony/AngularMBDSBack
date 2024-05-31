@@ -99,3 +99,6 @@
 # Les liens qui nous a aidé:
 	https://cloudinary.com/documentation/node_quickstart
 	https://andela.com/blog-posts/how-to-use-cloudinary-and-node-js-to-upload-multiple-images
+
+# Lien Render
+	https://angularmbdsfront-rtl0.onrender.com/login
