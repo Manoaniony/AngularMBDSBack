@@ -3,9 +3,9 @@ const dotenv = require('dotenv')
 dotenv.config();
 
 cloudinary.config({
-  cloud_name: 'manolotsoo-cloud',
-  api_key: '221819711568616',
-  api_secret: 'Xm7-nFFagvcUHb_I_JZ5AEhpPxE'
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET
 })
 
 exports.uploads = (file, folder) => {
