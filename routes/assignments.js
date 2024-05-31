@@ -395,28 +395,86 @@ async function updateNote(req, res) {
 }
 
 // Update d'un assignment (PUT)
-function updateAssignment(req, res) {
+async function updateAssignment(req, res) {
     let _id = req.params.id;
-    Assignment.findByIdAndUpdate(_id, req.body, { new: true }, (err, assignment) => {
-        console.log("assignment updated ", assignment);
-        if (err) {
-            res.status(400).json({
+    const filter = { _id: req.params.id };
+
+    try {
+        const assignmentToUpdate = Assignment.findById(_id).then((response) => {
+            console.log("response on find ", response);
+            if (!response) {
+                console.log("no response");
+            }
+            let assignmentToUpdate = response;
+            assignmentToUpdate = { ...req.body, eleves: response.eleves }
+
+            return Assignment.updateOne(filter, assignmentToUpdate)
+                .then((responseUpdate) => {
+                    console.log("ResponseUpdate ", responseUpdate);
+                    if (responseUpdate.nModified) {
+                        return assignmentToUpdate;
+                    }
+                    else {
+                        return response
+                    }
+                })
+                .catch((error) => {
+                    console.log("Error on update one ", error);
+                    throw error;
+                })
+        }).catch((error) => {
+            throw error
+        })
+        const responseToRequest = await assignmentToUpdate;
+        return await res.json({
+            data: responseToRequest,
+            status: 200,
+            message: "ASSINGMENT_UPDATED"
+        })
+    } catch (err) {
+        console.log("err on catch ", err);
+        if (err?.message?.includes("Cast to ObjectId failed")) {
+            return res.status(404).json({
                 data: null,
-                status: 400,
+                status: 404,
                 error: {
                     name: "ERROR",
                     code: err.code
                 },
-                message: "STUDENT_NOT_ADDED"
-            })
-        } else {
-            res.status(200).json({
-                data: assignment,
-                status: 200,
-                message: "ASSIGNMENT_UPDATED"
+                message: "ASSIGNMENT_NOT_EXIST"
             })
         }
-    });
+        return res.status(400).json({
+            data: null,
+            status: 400,
+            error: {
+                name: "ERROR",
+                code: err.code
+            },
+            message: "STUDENT_NOT_UPDATED"
+        })
+    }
+
+    // Assignment.findByIdAndUpdate(_id, req.body, { new: true }, (err, assignment) => {
+    //     console.log("assignment updated ", assignment);
+    //     if (err) {
+    //         res.status(400).json({
+    //             data: null,
+    //             status: 400,
+    //             error: {
+    //                 name: "ERROR",
+    //                 code: err.code
+    //             },
+    //             message: "STUDENT_NOT_ADDED"
+    //         })
+    //     } else {
+    //         res.status(200).json({
+    //             data: assignment,
+    //             status: 200,
+    //             message: "ASSIGNMENT_UPDATED"
+    //         })
+    //     }
+    // });
 
 }
 
